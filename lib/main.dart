@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart'; // For edgy fonts
 import 'package:pdf/pdf.dart'; // For PDF generation
 import 'package:pdf/widgets.dart' as pw; // PDF widgets
 import 'dart:typed_data'; // For web-friendly bytes
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 void main() {
   runApp(const MyApp());
@@ -64,7 +66,8 @@ class Task {
 class Photo {
   String fileName;
   DateTime dateAdded;
-  Photo(this.fileName, {required this.dateAdded});
+  Uint8List? imageBytes;
+  Photo(this.fileName, {required this.dateAdded, this.imageBytes});
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -77,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController editCarController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController garageController = TextEditingController(text: "Garage");
-  bool isPremium = false; // Mock premium status
+  bool isPremium = false;
 
   @override
   void initState() {
@@ -98,35 +101,32 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> addPhotoToCar(Car car) async {
-    print("Opening file picker for photo in ${car.name}");
-    if (!isPremium && car.photos.length >= 10) {
-      showPremiumPrompt(context);
-      return;
-    }
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null && result.files.single.name.isNotEmpty) {
-      setState(() {
-        car.photos.add(Photo(result.files.single.name, dateAdded: DateTime.now()));
-      });
-      print("Photo picked: ${result.files.single.name}");
-    } else {
-      print("No photo selected");
-    }
+Future<void> addPhotoToCar(Car car) async {
+  print("Opening file picker for photo in ${car.name}");
+  if (!isPremium && car.photos.length >= 10) {
+    showPremiumPrompt(context);
+    return;
   }
-
-  Future<void> setCoverPhoto(Car car) async {
-    print("Opening file picker for cover photo in ${car.name}");
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null && result.files.single.name.isNotEmpty) {
-      setState(() {
-        car.coverPhoto = result.files.single.name;
-      });
-      print("Cover photo picked: ${result.files.single.name}");
-    } else {
-      print("No cover photo selected");
+  FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+  if (result != null && result.files.single.name.isNotEmpty) {
+    Uint8List? imageBytes;
+    if (result.files.single.bytes != null) {
+      imageBytes = result.files.single.bytes; // Web/Chrome
+    } else if (result.files.single.path != null) {
+      imageBytes = await File(result.files.single.path!).readAsBytes(); // iOS
     }
+    setState(() {
+      car.photos.add(Photo(
+        result.files.single.name,
+        dateAdded: DateTime.now(),
+        imageBytes: imageBytes,
+      ));
+    });
+    print("Photo picked: ${result.files.single.name}");
+  } else {
+    print("No photo selected");
   }
+}
 
   Future<void> setReminderDate(BuildContext context, Task task) async {
     print("Setting reminder for: ${task.description}");
@@ -143,21 +143,18 @@ class _MyHomePageState extends State<MyHomePage> {
               onPrimary: Colors.white,
               surface: Colors.grey,
               onSurface: Colors.white,
-            ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[850]),
+            ),
+            dialogTheme: DialogThemeData(backgroundColor: Colors.grey[850]),
           ),
           child: child!,
         );
       },
-      confirmText: "OK",
-      cancelText: "Cancel",
     );
     if (picked != null) {
       setState(() {
         task.reminderDate = picked;
       });
       print("Reminder set to: ${DateFormat('MM/dd/yy').format(picked)}");
-    } else {
-      print("Cancel pressed in reminder");
     }
   }
 
@@ -223,10 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("Upgrade", style: GoogleFonts.racingSansOne(color: Colors.redAccent)),
             ),
             TextButton(
-              onPressed: () {
-                print("Cancel pressed in premium prompt");
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
             ),
           ],
@@ -277,6 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             maxLines: null,
             keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.done,
             onSubmitted: (text) {
               if (text.isNotEmpty) {
                 setState(() {
@@ -289,7 +284,6 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () {
-                print("Save pressed in edit task");
                 if (editTaskController.text.isNotEmpty) {
                   setState(() {
                     task.description = editTaskController.text;
@@ -300,10 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
             ),
             TextButton(
-              onPressed: () {
-                print("Cancel pressed in edit task");
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
             ),
           ],
@@ -333,118 +324,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () async {
-                  await setCoverPhoto(car);
-                },
-                child: Text("Set Cover Photo", style: GoogleFonts.racingSansOne()),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  showDialog(
-                    context: context,
-                    builder: (descContext) {
-                      return AlertDialog(
-                        backgroundColor: Colors.grey[850],
-                        title: Text("Specifications/Description", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                        content: TextField(
-                          controller: descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: "Enter specs or description",
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              print("Save pressed in description");
-                              setState(() {
-                                car.description = descriptionController.text;
-                              });
-                              Navigator.pop(descContext);
-                            },
-                            child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              print("Cancel pressed in description");
-                              Navigator.pop(descContext);
-                            },
-                            child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Text("Specifications/Description", style: GoogleFonts.racingSansOne()),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  showDialog(
-                    context: context,
-                    builder: (garageContext) {
-                      return AlertDialog(
-                        backgroundColor: Colors.grey[850],
-                        title: Text("Edit Garage Name", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                        content: TextField(
-                          controller: garageController,
-                          decoration: const InputDecoration(
-                            labelText: "Garage name",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              print("Save pressed in garage name");
-                              if (garageController.text.isNotEmpty) {
-                                setState(() {});
-                                print("Garage name updated to: ${garageController.text}");
-                                Navigator.pop(garageContext);
-                              }
-                            },
-                            child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              print("Cancel pressed in garage name");
-                              Navigator.pop(garageContext);
-                            },
-                            child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Text("Change Garage Name", style: GoogleFonts.racingSansOne()),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => exportRevLogToPDF(car, context),
-                child: Text("Export RevLog", style: GoogleFonts.racingSansOne()),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => showPremiumPrompt(context),
-                child: Text("Upgrade to Premium", style: GoogleFonts.racingSansOne()),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(
+                  labelText: "Specifications/Description",
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                print("Save pressed in edit car");
                 if (editCarController.text.isNotEmpty) {
                   setState(() {
                     car.name = editCarController.text;
+                    car.description = descriptionController.text;
                   });
                   Navigator.pop(dialogContext);
                 }
@@ -452,10 +349,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
             ),
             TextButton(
-              onPressed: () {
-                print("Cancel pressed in edit car");
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
             ),
           ],
@@ -489,7 +383,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     cars.add(newCar);
                     taskControllers[newCar] = TextEditingController();
                   });
-                  print("New car added via Enter: $text");
                   Navigator.pop(dialogContext);
                 }
               },
@@ -497,7 +390,6 @@ class _MyHomePageState extends State<MyHomePage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  print("Save pressed in new car");
                   String newCarName = newCarController.text;
                   if (newCarName.isNotEmpty) {
                     setState(() {
@@ -505,17 +397,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       cars.add(newCar);
                       taskControllers[newCar] = TextEditingController();
                     });
-                    print("New car added via button: $newCarName");
                     Navigator.pop(dialogContext);
                   }
                 },
                 child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
-            ),
+              ),
               TextButton(
-                onPressed: () {
-                  print("Cancel pressed in new car");
-                  Navigator.pop(dialogContext);
-                },
+                onPressed: () => Navigator.pop(dialogContext),
                 child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
               ),
             ],
@@ -523,6 +411,92 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       );
     }
+  }
+
+  void showSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[850],
+          title: Text("Settings", style: GoogleFonts.racingSansOne(color: Colors.white)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(dialogContext);
+                    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+                    if (result != null && result.files.single.name.isNotEmpty) {
+                      setState(() {
+                        cars[0].coverPhoto = result.files.single.name; // Default to first car
+                      });
+                      print("Cover photo set: ${result.files.single.name}");
+                    }
+                  },
+                  child: Text("Set Cover Photo", style: GoogleFonts.racingSansOne()),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    showDialog(
+                      context: context,
+                      builder: (garageContext) {
+                        return AlertDialog(
+                          backgroundColor: Colors.grey[850],
+                          title: Text("Change Garage Name", style: GoogleFonts.racingSansOne(color: Colors.white)),
+                          content: TextField(
+                            controller: garageController,
+                            decoration: const InputDecoration(
+                              labelText: "Garage name",
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                if (garageController.text.isNotEmpty) {
+                                  setState(() {});
+                                  Navigator.pop(garageContext);
+                                }
+                              },
+                              child: Text("Save", style: GoogleFonts.racingSansOne(color: Colors.white)),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(garageContext),
+                              child: Text("Cancel", style: GoogleFonts.racingSansOne(color: Colors.white)),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Text("Change Garage Name", style: GoogleFonts.racingSansOne()),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => exportRevLogToPDF(cars[0], context), // Default to first car
+                  child: Text("Export RevLog", style: GoogleFonts.racingSansOne()),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => showPremiumPrompt(context),
+                  child: Text("Upgrade to Premium", style: GoogleFonts.racingSansOne()),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text("Close", style: GoogleFonts.racingSansOne(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -538,6 +512,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         backgroundColor: Colors.black,
         titleTextStyle: const TextStyle(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              showSettingsDialog(context);
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -549,10 +531,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text(garageController.text, style: const TextStyle(fontSize: 20)),
                 IconButton(
                   icon: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () {
-                    print("Add vehicle button pressed");
-                    showNewCarDialog(context);
-                  },
+                  onPressed: () => showNewCarDialog(context),
                 ),
               ],
             ),
@@ -607,7 +586,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   icon: Icon(cars[index].isExpanded ? Icons.expand_less : Icons.expand_more),
                                   color: Colors.white,
                                   onPressed: () {
-                                    print("Toggle expand for ${cars[index].name}");
                                     setState(() {
                                       cars[index].isExpanded = !cars[index].isExpanded;
                                     });
@@ -621,21 +599,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (cars[index].isExpanded) ...[
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: TextField(
-                            controller: taskControllers[cars[index]],
-                            decoration: const InputDecoration(
-                              labelText: "Enter Log",
-                              labelStyle: TextStyle(color: Colors.white70),
-                              border: OutlineInputBorder(),
-                            ),
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            onSubmitted: (text) {
-                              taskControllers[cars[index]]!.text += '\n';
-                              taskControllers[cars[index]]!.selection = TextSelection.fromPosition(
-                                TextPosition(offset: taskControllers[cars[index]]!.text.length),
-                              );
+                          child: GestureDetector(
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
                             },
+                            child: TextField(
+                              controller: taskControllers[cars[index]],
+                              decoration: const InputDecoration(
+                                labelText: "Enter Log",
+                                labelStyle: TextStyle(color: Colors.white70),
+                                border: OutlineInputBorder(),
+                              ),
+                              maxLines: null,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (text) {
+                                taskControllers[cars[index]]!.text += '\n';
+                                taskControllers[cars[index]]!.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: taskControllers[cars[index]]!.text.length),
+                                );
+                                FocusScope.of(context).unfocus();
+                              },
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -685,17 +670,28 @@ class _MyHomePageState extends State<MyHomePage> {
                         }),
                         ...cars[index].photos.map((photo) {
                           return ListTile(
-                            leading: Text(
-                              DateFormat('MM/dd/yy').format(photo.dateAdded),
-                              style: const TextStyle(fontSize: 16, color: Colors.white70),
-                            ),
-                            title: Text(
-                              "Photo: ${photo.fileName}",
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            trailing: const Icon(Icons.image, color: Colors.green),
-                          );
-                        }),
+    leading: Text(
+      DateFormat('MM/dd/yy').format(photo.dateAdded),
+      style: const TextStyle(fontSize: 16, color: Colors.white70),
+    ),
+    title: photo.imageBytes != null
+        ? ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.3, // 30% of screen width
+              maxHeight: 100, // Cap height to avoid overflow
+            ),
+            child: Image.memory(
+              photo.imageBytes!,
+              fit: BoxFit.contain, // Preserves aspect ratio
+            ),
+          )
+        : Text(
+            "Photo: ${photo.fileName}",
+            style: const TextStyle(color: Colors.white70),
+          ),
+    trailing: const Icon(Icons.image, color: Colors.green),
+  );
+}),
                       ],
                       const Divider(color: Colors.white54),
                     ],
