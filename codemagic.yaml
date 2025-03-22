@@ -5,9 +5,15 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       flutter: stable
-    working_directory: .
+      xcode: latest
     scripts:
       - flutter pub get
       - flutter build ios --release --no-codesign
+      - |
+        # Archive the .app into an .ipa manually
+        cd build/ios/iphoneos
+        mkdir -p Payload
+        mv Runner.app Payload/
+        zip -r app.ipa Payload
     artifacts:
-      - build/ios/iphoneos/*.ipa
+      - build/ios/iphoneos/app.ipa
