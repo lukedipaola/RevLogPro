@@ -16,10 +16,8 @@ workflows:
           Ol9K5l8U
           -----END PRIVATE KEY-----
       ios_signing:
-        provisioning_profiles:
-          - path: "revlog_pro_app_store (6).mobileprovision"
-        certificates:
-          - path: "distribution.pem"
+        distribution_type: app_store
+        bundle_identifier: "com.lukedipaola.revlogpro"
     scripts:
       - flutter pub get
       - flutter build ipa --release --no-tree-shake-icons
