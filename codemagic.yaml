@@ -6,10 +6,10 @@ workflows:
       groups:
         - apple-credentials
       ios_signing:
-  provisioning_profiles:
-    - path: "RevLogPro.mobileprovision"
-  certificates:
-    - path: "distribution.cer"
+        provisioning_profiles:
+          - path: "RevLogPro.mobileprovision"
+        certificates:
+          - path: "distribution.cer"
     scripts:
       - flutter pub get
       - flutter build ipa --release --no-tree-shake-icons
