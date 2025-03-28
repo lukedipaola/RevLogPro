@@ -18,7 +18,7 @@ workflows:
       ios_signing:
         bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
-          - path: "RevLogPro.mobileprovision"
+          - path: "revlog_pro_app_store (6).mobileprovision"
         certificates:
           - path: "distribution.pem"
     scripts:
