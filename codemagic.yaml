@@ -17,9 +17,9 @@ workflows:
           -----END PRIVATE KEY-----
       ios_signing:
         provisioning_profiles:
-          - name: "RevLog Pro App Store"
+          - name: "RevLogProAppStore"  # No spaces, still matches intent
             path: "revlog_pro_app_store (6).mobileprovision"
-            bundle_identifier: "com.lukedipaola.revlogpro"  # From your app
+            bundle_identifier: "com.lukedipaola.revlogpro"
         certificates:
           - path: "distribution.pem"
     scripts:
