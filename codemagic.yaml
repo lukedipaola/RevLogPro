@@ -6,6 +6,7 @@ workflows:
       groups:
         - apple-credentials
       ios_signing:
+        bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
           - path: "RevLogPro.mobileprovision"
         certificates:
