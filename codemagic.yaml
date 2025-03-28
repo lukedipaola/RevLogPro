@@ -7,8 +7,7 @@ workflows:
       - flutter pub get
       - flutter build apk --release --no-tree-shake-icons
     artifacts:
-      - build/**/outputs/**/*.apk
-
+      - build//outputs//*.apk
   ios-release:
     name: iOS Release Build
     environment:
@@ -27,7 +26,8 @@ workflows:
       - build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
-        key_id: "$APP_STORE_CONNECT_KEY_IDENTIFIER"
-        issuer_id: "$APP_STORE_CONNECT_ISSUER_ID"
-        key: "$APP_STORE_CONNECT_PRIVATE_KEY"
+        key_id: "4BNWW6FQQWAG"
+        issuer_id: "a5e538c5-163a-4a2a-9440-73e5020fef99"  # From App Store Connect
+        key: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZ3BadHA4TXhwNHlOQ0E4K0UKTnhEbjEzZWpRWXJFNWlTMDBtZ2hSa0IrT3hpZ0NnWUlLb1pJemowREFRZWhSQU5DQUFScHRLZVhVWVFzWWZ4YgpGY1RjYVR0TGxxMVp6R21XblQqYnRXeHFuc2VQaHhGR1RkVHlXbUViaGlPNkFuSWgvZnd5N09mYXU0cEhSQlRvCk9sOUs1bDhVCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
         submit_to_testflight: true
+
