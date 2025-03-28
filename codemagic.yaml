@@ -4,10 +4,8 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Get Flutter dependencies
-        script: flutter pub get
-      - name: Build APK
-        script: flutter build apk --release --no-tree-shake-icons
+      - flutter pub get
+      - flutter build apk --release --no-tree-shake-icons
     artifacts:
       - build/**/outputs/**/*.apk
 
@@ -16,19 +14,20 @@ workflows:
     environment:
       flutter: stable
       groups:
-        - apple-credentials  # APP_STORE_CONNECT_PRIVATE_KEY, etc.
+        - apple-credentials
       vars:
         BUNDLE_ID: "com.lukedipaola.revlogpro"
       ios_signing:
         distribution_type: app_store
         bundle_identifier: "com.lukedipaola.revlogpro"
     scripts:
-      - name: Get Flutter dependencies
-        script: flutter pub get
-      - name: Build IPA
-        script: flutter build ipa --release --no-tree-shake-icons
+      - flutter pub get
+      - flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
-        submit_to_testflight: true  # No auth: integration needed
+        key_id: "$APP_STORE_CONNECT_KEY_IDENTIFIER"  # 4BNWW6FQQWAG
+        issuer_id: "$APP_STORE_CONNECT_ISSUER_ID"
+        key: "$APP_STORE_CONNECT_PRIVATE_KEY"
+        submit_to_testflight: true
