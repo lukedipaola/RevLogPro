@@ -1,0 +1,12 @@
+workflows:
+  android-release:
+    name: Android Release Build
+    environment:
+      flutter: stable
+    scripts:
+      - name: Get Flutter dependencies
+        script: flutter pub get
+      - name: Build APK
+        script: flutter build apk --release --no-tree-shake-icons
+    artifacts:
+      - build/**/outputs/**/*.apk
