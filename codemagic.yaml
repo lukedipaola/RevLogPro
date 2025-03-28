@@ -16,6 +16,7 @@ workflows:
           Ol9K5l8U
           -----END PRIVATE KEY-----
       ios_signing:
+        distribution_type: app_store
         bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
           - path: "revlog_pro_app_store (6).mobileprovision"
