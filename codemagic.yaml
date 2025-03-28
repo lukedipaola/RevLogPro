@@ -4,14 +4,11 @@ workflows:
     environment:
       flutter: stable
       ios_signing:
+        bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
           - path: "RevLogPro.mobileprovision"
     scripts:
-      - flutter build ipa --release
+      - flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
-
-
-
-
 
