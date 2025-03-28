@@ -9,7 +9,6 @@ workflows:
     artifacts:
       - build/**/outputs/**/*.apk
 
-  workflows:
   ios-release:
     name: iOS Release Build
     environment:
