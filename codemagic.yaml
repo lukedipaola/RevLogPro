@@ -28,6 +28,6 @@ workflows:
     publishing:
       app_store_connect:
         key_id: "$APP_STORE_CONNECT_KEY_IDENTIFIER"  # 4BNWW6FQQWAG
-        issuer_id: "$APP_STORE_CONNECT_ISSUER_ID"
-        key: "$APP_STORE_CONNECT_PRIVATE_KEY"
+        issuer_id: "$APP_STORE_CONNECT_ISSUER_ID"    # Your Issuer ID
+        key: "$APP_STORE_CONNECT_PRIVATE_KEY"        # Base64-encoded .p8
         submit_to_testflight: true
