@@ -10,3 +10,22 @@ workflows:
         script: flutter build apk --release --no-tree-shake-icons
     artifacts:
       - build/**/outputs/**/*.apk
+
+  ios-release:
+    name: iOS Release Build
+    environment:
+      flutter: stable
+      vars:
+        BUNDLE_ID: "com.lukedipaola.revlogpro"  # Replace with your app’s Bundle ID
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: "com.lukedipaola.revlogpro"  # Match above
+    integrations:
+      app_store_connect: RevLogPro-iOS-Key  #333VX8449U
+    scripts:
+      - name: Get Flutter dependencies
+        script: flutter pub get
+      - name: Build IPA
+        script: flutter build ipa --release --no-tree-shake-icons
+    artifacts:
+      - build/ios/ipa/*.ipa
