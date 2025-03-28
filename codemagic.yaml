@@ -20,12 +20,19 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: "com.lukedipaola.revlogpro"
+        provisioning_profiles:
+          - path: "RevLogPro.mobileprovision"
     scripts:
       - flutter pub get
       - flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
-    # No publishing block
+    publishing:
+      app_store_connect:
+        key_id: "$APP_STORE_CONNECT_KEY_IDENTIFIER"
+        issuer_id: "$APP_STORE_CONNECT_ISSUER_ID"
+        key: "$APP_STORE_CONNECT_PRIVATE_KEY"
+        submit_to_testflight: true
 
 
 
