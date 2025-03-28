@@ -18,8 +18,6 @@ workflows:
       vars:
         BUNDLE_ID: "com.lukedipaola.revlogpro"
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
           - path: "RevLogPro.mobileprovision"
     scripts:
