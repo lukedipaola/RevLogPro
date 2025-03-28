@@ -3,12 +3,21 @@ workflows:
     name: iOS Release Build
     environment:
       flutter: stable
+      groups:
+        - apple-credentials
       ios_signing:
         distribution_type: app_store
         bundle_identifier: "com.lukedipaola.revlogpro"
         provisioning_profiles:
           - path: "RevLogPro.mobileprovision"
     scripts:
+      - flutter pub get
       - flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        key_id: "4BNWW6FQQWAG"
+        issuer_id: "a5e538c5-163a-4a2a-9440-73e5020fef99"
+        key: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZ3BadHA4TXhwNHlOQ0E8K0UKTnhEbjEzZWpRWXJFNWlTMDBtZ2hSa0IrT3hpZ0NnWUlLb1pJemowREFRZWhSQU5DQUFScHRLZVhVWVFzWWZ4YgpGY1RjYVR0TGxxMVp6R21XblQqYnRXeHFuc2VQaHhGR1RkVHlXbUViaGlPNkFuSWgvZnd5N09mYXU0cEhSQlRvCk9sOUs1bDhVCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
+        submit_to_testflight: true
