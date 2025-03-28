@@ -6,6 +6,7 @@ workflows:
       ios_signing:
         provisioning_profiles:
           - path: "revlog_pro_app_store (6).mobileprovision"
+            bundle_identifier: "com.lukedipaola.revlogpro"  # Add this back
         certificates:
           - path: "distribution.pem"
     scripts:
