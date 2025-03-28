@@ -3,23 +3,9 @@ workflows:
     name: iOS Release Build
     environment:
       flutter: stable
-      groups:
-        - apple-credentials
-      vars:
-        APP_STORE_KEY_ID: "4BNWW6FQQWAG"
-        APP_STORE_ISSUER_ID: "a5e538c5-163a-4a2a-9440-73e5020fef99"
-        APP_STORE_KEY: |
-          -----BEGIN PRIVATE KEY-----
-          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgPztp8Mxp4yNCA+0E
-          NxDn13ejQYrE5iS00mghRkB+OxiCgYIKoZIzj0DAQehRANCAARptKeXVUQsYfxb
-          FcTcaTtLlq1ZzGmWnT+btxWqnsPhxFGTdTyWmEbhiO6AnIhfwy7Ofau4pHRBTo
-          Ol9K5l8U
-          -----END PRIVATE KEY-----
       ios_signing:
         provisioning_profiles:
-          - name: "RevLogProAppStore"  # No spaces, still matches intent
-            path: "revlog_pro_app_store (6).mobileprovision"
-            bundle_identifier: "com.lukedipaola.revlogpro"
+          - path: "revlog_pro_app_store (6).mobileprovision"
         certificates:
           - path: "distribution.pem"
     scripts:
