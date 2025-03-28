@@ -15,13 +15,13 @@ workflows:
     name: iOS Release Build
     environment:
       flutter: stable
+      groups:
+        - apple-credentials  # Pulls APP_STORE_CONNECT_PRIVATE_KEY, etc.
       vars:
-        BUNDLE_ID: "com.lukedipaola.revlogpro"  # Replace with your app’s Bundle ID
+        BUNDLE_ID: "com.lukedipaola.revlogpro"
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: "com.lukedipaola.revlogpro"  # Match above
-    integrations:
-      app_store_connect: RevLogPro-iOS-Key  #333VX8449U
+        bundle_identifier: "com.lukedipaola.revlogpro"
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
@@ -29,3 +29,7 @@ workflows:
         script: flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
