@@ -17,8 +17,9 @@ workflows:
           -----END PRIVATE KEY-----
       ios_signing:
         provisioning_profiles:
-          - name: "RevLog Pro App Store"  # Matches profile’s Name field
+          - name: "RevLog Pro App Store"
             path: "revlog_pro_app_store (6).mobileprovision"
+            bundle_identifier: "com.lukedipaola.revlogpro"  # From your app
         certificates:
           - path: "distribution.pem"
     scripts:
@@ -28,14 +29,13 @@ workflows:
       - build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
-        api_key:
-          key_id: "4BNWW6FQQWAG"         # Hardcode to avoid $ var issues
-          issuer_id: "a5e538c5-163a-4a2a-9440-73e5020fef99"
-          key: |
-            -----BEGIN PRIVATE KEY-----
-            MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgPztp8Mxp4yNCA+0E
-            NxDn13ejQYrE5iS00mghRkB+OxiCgYIKoZIzj0DAQehRANCAARptKeXVUQsYfxb
-            FcTcaTtLlq1ZzGmWnT+btxWqnsPhxFGTdTyWmEbhiO6AnIhfwy7Ofau4pHRBTo
-            Ol9K5l8U
-            -----END PRIVATE KEY-----
+        key_id: "4BNWW6FQQWAG"
+        issuer_id: "a5e538c5-163a-4a2a-9440-73e5020fef99"
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgPztp8Mxp4yNCA+0E
+          NxDn13ejQYrE5iS00mghRkB+OxiCgYIKoZIzj0DAQehRANCAARptKeXVUQsYfxb
+          FcTcaTtLlq1ZzGmWnT+btxWqnsPhxFGTdTyWmEbhiO6AnIhfwy7Ofau4pHRBTo
+          Ol9K5l8U
+          -----END PRIVATE KEY-----
         submit_to_testflight: true
